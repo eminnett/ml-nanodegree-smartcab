@@ -11,10 +11,18 @@ class LearningAgent(Agent):
         self.color = 'red'  # override color
         self.planner = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         # TODO: Initialize any additional variables here
+        self.all_rewards = []
+        self.cumulative_reward = 0
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
         # TODO: Prepare for a new trip; reset any variables here, if required
+        print "Accumulated reward: {}".format(self.cumulative_reward)
+        if (len(self.all_rewards) > 0 and len(self.all_rewards) < 100) or self.cumulative_reward > 0:
+            self.all_rewards.append(self.cumulative_reward)
+        print "Number of iterations: {}".format(len(self.all_rewards))
+        print "All Rewards; {}".format(self.all_rewards)
+        self.cumulative_reward = 0
 
     def update(self, t):
         # Gather inputs
@@ -29,6 +37,8 @@ class LearningAgent(Agent):
 
         # Execute action and get reward
         reward = self.env.act(self, action)
+
+        self.cumulative_reward += reward
 
         # TODO: Learn policy based on state, action, reward
 
