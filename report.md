@@ -33,6 +33,13 @@ Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
 6.00   13.00   15.50   15.66   18.00   28.00
 ```
 
+Given that the number of steps taken weren't a consideration meaning that every trial received the 12 point reward for reaching the destination, the naive strategy performed quite poorly. Combining the naive strategy with logic that determines whether the desired agent action is legal given the environment inputs and the 'rules of the road' results in a much better performing strategy. 100 iterations using the Informed Driver strategy resulted in a sample of trial rewards with the following summary statistics:
+
+```
+Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+14.0    20.0    22.0    22.7    26.0    36.0
+```
+
 #### OPTIONAL: How many states in total exist for the smartcab in this environment? Does this number seem reasonable given that the goal of Q-Learning is to learn and make informed decisions about each state? Why or why not?
 
 ## Implement a Q-Learning Driving Agent
