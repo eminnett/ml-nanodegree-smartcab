@@ -31,7 +31,7 @@ class LearningAgent(Agent):
         deadline = self.env.get_deadline(self)
 
         # TODO: Update state
-        
+
         # TODO: Select action according to your policy
         action = self.policy(self.next_waypoint, inputs, deadline)
 
@@ -44,9 +44,9 @@ class LearningAgent(Agent):
 
         print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
 
-    # The Random Action Policy
+    # The Naive Policy
     def policy(self, planned_action, inputs, deadline):
-        return random.choice([None, 'forward', 'left', 'right'])
+        return planned_action
 
 def run():
     """Run the agent for a finite number of trials."""
