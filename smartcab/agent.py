@@ -44,9 +44,20 @@ class LearningAgent(Agent):
 
         print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
 
-    # The Naive Policy
+    # The Informed Driver Policy
     def policy(self, planned_action, inputs, deadline):
-        return planned_action
+        if self.action_is_legal(planned_action, inputs):
+            return planned_action
+        else:
+            return None
+
+    def action_is_legal(self, action, inputs):
+        if action == 'forward':
+            return inputs['light'] == 'green'
+        elif action =='right':
+            return inputs['light'] == 'green' or inputs['left'] != 'forward'
+        elif action =='left':
+            return inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
 
 def run():
     """Run the agent for a finite number of trials."""
