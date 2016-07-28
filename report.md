@@ -18,6 +18,8 @@ To complete this task, simply have your driving agent choose a random action fro
 
 #### QUESTION: Observe what you see with the agent's behavior as it takes random actions. Does the smartcab eventually make it to the destination? Are there any other interesting observations to note?
 
+In the many iterations that I watched, the number of steps taken before reaching the destination varied dramatically. A few times it reached the destination very quickly, but for most of the iterations, the agent moved around very inefficiently. This isn't surprising given the random choice of action taken. A more interesting observation is that the agent spends more time stuck at an intersection than it does moving around. At face value, it feels that this can't be right as 3 out of four actions result in movement, but when those actions are combined with the state of the traffic lights and the placement of other agents within the environment, more actions than not result in no movement.
+
 ## Inform the Driving Agent
 
 Now that your driving agent is capable of moving around in the environment, your next task is to identify a set of states that are appropriate for modeling the smartcab and environment. The main source of state variables are the current inputs at the intersection, but not all may require representation. You may choose to explicitly define states, or use some combination of inputs as an implicit state. At each time step, process the inputs and update the agent's current state using the self.state variable. Continue with the simulation deadline enforcement enforce_deadline being set to False, and observe how your driving agent now reports the change in state as the simulation progresses.
