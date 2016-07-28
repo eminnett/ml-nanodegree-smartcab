@@ -33,7 +33,7 @@ class LearningAgent(Agent):
         # TODO: Update state
         
         # TODO: Select action according to your policy
-        action = None
+        action = self.policy(self.next_waypoint, inputs, deadline)
 
         # Execute action and get reward
         reward = self.env.act(self, action)
@@ -44,6 +44,9 @@ class LearningAgent(Agent):
 
         print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
 
+    # The Random Action Policy
+    def policy(self, planned_action, inputs, deadline):
+        return random.choice([None, 'forward', 'left', 'right'])
 
 def run():
     """Run the agent for a finite number of trials."""
