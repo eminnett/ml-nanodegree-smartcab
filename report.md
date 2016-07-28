@@ -26,6 +26,13 @@ Now that your driving agent is capable of moving around in the environment, your
 
 #### QUESTION: What states have you identified that are appropriate for modeling the smartcab and environment? Why do you believe each of these states to be appropriate for this problem?
 
+My initial implementation of the informed driving agent was very naive. I wanted to see how the agent performed if it simply performed the action suggested by the route planner. This would be the equivalent of letting your sat-nav drive your car without any input from the environment. A bad idea certainly, but this naive agent will offer a baseline performance that less naive strategies can be compared against. 100 iterations using the Naive strategy resulted in a sample of trial rewards. This summary statistics for this sample are as follows:
+
+```
+Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+6.00   13.00   15.50   15.66   18.00   28.00
+```
+
 #### OPTIONAL: How many states in total exist for the smartcab in this environment? Does this number seem reasonable given that the goal of Q-Learning is to learn and make informed decisions about each state? Why or why not?
 
 ## Implement a Q-Learning Driving Agent
