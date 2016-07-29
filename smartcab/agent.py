@@ -11,12 +11,15 @@ class LearningAgent(Agent):
         self.color = 'red'  # override color
         self.planner = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         # TODO: Initialize any additional variables here
+        self.state = {}
         self.all_rewards = []
         self.cumulative_reward = 0
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
         # TODO: Prepare for a new trip; reset any variables here, if required
+        self.state = {}
+
         print "Accumulated reward: {}".format(self.cumulative_reward)
         if (len(self.all_rewards) > 0 and len(self.all_rewards) < 100) or self.cumulative_reward > 0:
             self.all_rewards.append(self.cumulative_reward)
@@ -31,9 +34,10 @@ class LearningAgent(Agent):
         deadline = self.env.get_deadline(self)
 
         # TODO: Update state
+        self.update_state(inputs)
 
         # TODO: Select action according to your policy
-        action = self.policy(self.next_waypoint, inputs, deadline)
+        action = self.policy()
 
         # Execute action and get reward
         reward = self.env.act(self, action)
@@ -45,19 +49,18 @@ class LearningAgent(Agent):
         print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
 
     # The Informed Driver Policy
-    def policy(self, planned_action, inputs, deadline):
-        if self.action_is_legal(planned_action, inputs):
-            return planned_action
+    def policy(self):
+        if self.state['can_travel_in_direction'][self.next_waypoint]:
+            return self.next_waypoint
         else:
             return None
 
-    def action_is_legal(self, action, inputs):
-        if action == 'forward':
-            return inputs['light'] == 'green'
-        elif action =='right':
-            return inputs['light'] == 'green' or inputs['left'] != 'forward'
-        elif action =='left':
-            return inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
+    def update_state(self, inputs):
+        self.state['can_travel_in_direction'] = {
+            'forward': inputs['light'] == 'green',
+            'right': inputs['light'] == 'green' or inputs['left'] != 'forward',
+            'left': inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
+        }
 
 def run():
     """Run the agent for a finite number of trials."""
