@@ -199,7 +199,7 @@ def run():
     sim = Simulator(e, update_delay=0.1, display=False)  # create simulator (uses pygame when display=True, if available)
     # NOTE: To speed up simulation, reduce update_delay and/or set display=False
 
-    sim.run(n_trials=1000)  # run for a specified number of trials
+    sim.run(n_trials=100)  # run for a specified number of trials
     # NOTE: To quit midway, press Esc or close pygame window, or hit Ctrl+C on the command-line
 
 
