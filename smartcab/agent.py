@@ -24,6 +24,7 @@ class LearningAgent(Agent):
         self.all_rewards = []
         self.cumulative_reward = 0
         self.actions = ['forward', 'right', 'left', None]
+        self.possible_states = self.state_permutations()
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -83,12 +84,11 @@ class LearningAgent(Agent):
 
 
     def update_state(self, inputs):
-        legal_moves = {
+        self.state['can_travel_in_direction'] = {
             'forward': inputs['light'] == 'green',
             'right': inputs['light'] == 'green' or inputs['left'] != 'forward',
             'left': inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
         }
-        self.state['can_travel_in_desired_direction'] = legal_moves[self.next_waypoint]
         self.state['desired_direction'] = self.next_waypoint
 
     def exploration_probability(self, deadline):
@@ -153,16 +153,27 @@ class LearningAgent(Agent):
         return sorted([self.N_get(s, a) for a in self.actions], reverse=True)[0]
 
     def state_string(self, s):
-        ct = s['can_travel_in_desired_direction']
+        f = s['can_travel_in_direction']['forward']
+        r = s['can_travel_in_direction']['right']
+        l = s['can_travel_in_direction']['left']
         dd = s['desired_direction']
-        return "ct:{},dd:{}".format(ct, dd)
+        return "f:{},r:{},l:{},dd:{}".format(f, r, l, dd)
 
     def state_action_matrix_string(self, getter):
-        output = "State               | forward  | right    | left     | None     |\n"
-        for s in self.state_permutations():
+        """
+        State               | forward  | right    | left     | None     |
+        ct:True,dd:forward  | 53       | 8        | 15       | 19       |
+        ct:True,dd:right    | 18       | 70       | 11       | 13       |
+        ct:True,dd:left     | 7        | 8        | 7        | 9        |
+        ct:False,dd:forward | 17       | 12       | 20       | 70       |
+        ct:False,dd:right   | 0        | 0        | 0        | 0        |
+        ct:False,dd:left    | 9        | 14       | 8        | 4        |
+        """
+        output = "State                              | forward  | right    | left     | None     |\n"
+        for s in self.possible_states:
             state_string = self.state_string(s)
-            if len(state_string) < 19:
-                state_string = state_string + (' ' * (19 - len(state_string)))
+            if len(state_string) < 34:
+                state_string = state_string + (' ' * (34 - len(state_string)))
             output += state_string + " |"
             for a in self.actions:
                 value = str(getter(s, a))
@@ -175,15 +186,19 @@ class LearningAgent(Agent):
         return output
 
     def state_permutations(self):
-        can_travel_options = [True, False]
+        can_travel_forward = [True, False]
+        can_travel_right = [True, False]
+        can_travel_left = [True, False]
         desired_directions = ['forward', 'right', 'left']
         states = []
-        for ct in can_travel_options:
-            for dd in desired_directions:
-                states.append({
-                        'can_travel_in_desired_direction': ct,
-                        'desired_direction': dd
-                    })
+        for f in can_travel_forward:
+            for r in can_travel_right:
+                for l in can_travel_left:
+                    for dd in desired_directions:
+                        states.append({
+                                'can_travel_in_direction': {'forward': f,'right': r,'left': l},
+                                'desired_direction': dd
+                            })
         return states
 
 def run():
