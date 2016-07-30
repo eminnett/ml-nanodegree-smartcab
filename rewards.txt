@@ -40,3 +40,67 @@ ct:False,dd:forward | 13       | 35       | 23       | 458      |
 ct:False,dd:right   | 0        | 0        | 0        | 1        |
 ct:False,dd:left    | 19       | 58       | 18       | 36       |
 
+
+Q Learning (alpha: 0.5, gamma: 0.5, epsilon: 0.5) (medium state space)
+sample of rewards: [-5.5, 5.5, 2.5, 10.0, -5.0, 15.5, 14.5, 25.5, 14.5, 14.5, 15.5, 27.0, 23.5, 7.5, 17.0, 36.0, 29.5, 20.0, 20.5, 22.0, 24.0, 25.0, 40.0, 31.0, 15.0, 14.5, 33.5, 20.5, 26.5, 31.5, 25.5, 29.0, 18.5, 19.5, 19.5, 28.5, 21.5, 20.5, 22.5, 19.0, 22.0, 19.5, 18.0, 22.0, 28.0, 20.0, 11.5, 18.0, 11.5, 25.0, 23.5, 33.5, 14.5, 21.0, 29.5, 22.0, 23.5, 20.0, 22.0, 26.0, 17.5, 20.5, 18.0, 24.5, 25.5, 22.0, 28.5, 21.0, 19.0, 19.0, 25.5, 25.5, 19.5, 24.0, 25.0, 13.5, 20.0, 17.5, 24.5, 22.0, 17.5, 20.0, 18.0, 22.0, 22.0, 22.0, 26.0, 26.0, 25.5, 25.0, 20.0, 20.0, 20.0, 24.0, 25.0, 20.0, 21.0, 27.0, 20.0, 20.0]
+Min.  1st Qu.  Median    Mean 3rd Qu.    Max.
+-5.50   18.38   21.00   21.00   25.00   40.00
+Roughly normally distributed around the mean with a wider peak than for the Q-Learning agent with a smaller state space.
+
+f = "Can travel forward"
+r = "Can travel right"
+l = "Can travel left"
+dd = "Desired direction"
+Q(s,a):
+State                              | forward  | right    | left     | None     |
+f:True,r:True,l:True,dd:forward    | 2.686990 | 0.598934 | 1.277799 | 1.324403 |
+f:True,r:True,l:True,dd:right      | 0.946232 | 3.185404 | 1.145008 | 1.580687 |
+f:True,r:True,l:True,dd:left       | 1.129886 | 1.126936 | 2.580594 | 1.453156 |
+f:True,r:True,l:False,dd:forward   | 1.089385 | 0        | 0.346089 | 1.109735 |
+f:True,r:True,l:False,dd:right     | 0        | 1.579138 | 0.263039 | 0        |
+f:True,r:True,l:False,dd:left      | 0        | 0        | 0        | 0        |
+f:True,r:False,l:True,dd:forward   | 0        | 0        | 0        | 0        |
+f:True,r:False,l:True,dd:right     | 0        | 0        | 0        | 0        |
+f:True,r:False,l:True,dd:left      | 0        | 0        | 0        | 0        |
+f:True,r:False,l:False,dd:forward  | 0        | 0        | 0        | 0        |
+f:True,r:False,l:False,dd:right    | 0        | 0        | 0        | 0        |
+f:True,r:False,l:False,dd:left     | 0        | 0        | 0        | 0        |
+f:False,r:True,l:True,dd:forward   | 0        | 0        | 0        | 0        |
+f:False,r:True,l:True,dd:right     | 0        | 0        | 0        | 0        |
+f:False,r:True,l:True,dd:left      | 0        | 0        | 0        | 0        |
+f:False,r:True,l:False,dd:forward  | -0.50389 | 0.395588 | -0.10081 | 0.866392 |
+f:False,r:True,l:False,dd:right    | 0.647890 | 3.313586 | 0.746813 | 1.689758 |
+f:False,r:True,l:False,dd:left     | -0.50606 | 0.154652 | -0.56356 | 1.114476 |
+f:False,r:False,l:True,dd:forward  | 0        | 0        | 0        | 0        |
+f:False,r:False,l:True,dd:right    | 0        | 0        | 0        | 0        |
+f:False,r:False,l:True,dd:left     | 0        | 0        | 0        | 0        |
+f:False,r:False,l:False,dd:forward | 0        | -0.09279 | 0        | 0        |
+f:False,r:False,l:False,dd:right   | 0        | 0        | 0        | 0        |
+f:False,r:False,l:False,dd:left    | 0        | -0.34875 | 0        | 0.802159 |
+
+N(s,a):
+State                              | forward  | right    | left     | None     |
+f:True,r:True,l:True,dd:forward    | 302      | 23       | 14       | 22       |
+f:True,r:True,l:True,dd:right      | 19       | 149      | 13       | 13       |
+f:True,r:True,l:True,dd:left       | 25       | 14       | 64       | 18       |
+f:True,r:True,l:False,dd:forward   | 1        | 0        | 1        | 2        |
+f:True,r:True,l:False,dd:right     | 0        | 1        | 1        | 0        |
+f:True,r:True,l:False,dd:left      | 0        | 0        | 0        | 0        |
+f:True,r:False,l:True,dd:forward   | 0        | 0        | 0        | 0        |
+f:True,r:False,l:True,dd:right     | 0        | 0        | 0        | 0        |
+f:True,r:False,l:True,dd:left      | 0        | 0        | 0        | 0        |
+f:True,r:False,l:False,dd:forward  | 0        | 0        | 0        | 0        |
+f:True,r:False,l:False,dd:right    | 0        | 0        | 0        | 0        |
+f:True,r:False,l:False,dd:left     | 0        | 0        | 0        | 0        |
+f:False,r:True,l:True,dd:forward   | 0        | 0        | 0        | 0        |
+f:False,r:True,l:True,dd:right     | 0        | 0        | 0        | 0        |
+f:False,r:True,l:True,dd:left      | 0        | 0        | 0        | 0        |
+f:False,r:True,l:False,dd:forward  | 18       | 54       | 25       | 453      |
+f:False,r:True,l:False,dd:right    | 17       | 122      | 21       | 20       |
+f:False,r:True,l:False,dd:left     | 27       | 51       | 25       | 103      |
+f:False,r:False,l:True,dd:forward  | 0        | 0        | 0        | 0        |
+f:False,r:False,l:True,dd:right    | 0        | 0        | 0        | 0        |
+f:False,r:False,l:True,dd:left     | 0        | 0        | 0        | 0        |
+f:False,r:False,l:False,dd:forward | 0        | 2        | 0        | 0        |
+f:False,r:False,l:False,dd:right   | 0        | 0        | 0        | 0        |
+f:False,r:False,l:False,dd:left    | 0        | 2        | 0        | 1        |
