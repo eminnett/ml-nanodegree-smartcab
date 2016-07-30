@@ -22,6 +22,7 @@ class LearningAgent(Agent):
         self.epsilon = 0.5
         self.all_rewards = []
         self.cumulative_reward = 0
+        self.actions = ['forward', 'right', 'left', None]
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -37,10 +38,6 @@ class LearningAgent(Agent):
         print "Number of iterations: {}".format(len(self.all_rewards))
         print "All Rewards; {}".format(self.all_rewards)
         self.cumulative_reward = 0
-
-        if len(self.all_rewards) % 10 == 0:
-            print self.q_states
-            print self.n_states
 
     def update(self, t):
         # Gather inputs
@@ -60,19 +57,24 @@ class LearningAgent(Agent):
         self.cumulative_reward += reward
 
         # TODO: Learn policy based on state, action, reward
-        # Q(s,a) = R(s) + gama * sum_over_s_prime(T(a,a,s_prime)) * max_given_a_prime(Q(s_prime, a_prime))
-        # Q_hat(s,a) <-(alpha) r + gamma * max_given_a_prime(Q_hat(s,a))
-        # V <-(alpha) X => V <- (1-alpha) * V + alpha * X
-        # Alpha => learning rate (should decay over time)
-        # tranistion = (state, action, reward, state_prime)
         if self.prev_state != None:
+            print "\n"
+            print "Update Q and N:"
+
             n_val = self.N_increment(self.prev_state, self.prev_action)
             old_q_val = self.Q_get(self.prev_state, self.prev_action)
-            # Fix this to actually use q max for any action
-            new_q_val = (1 - self.alpha) * old_q_val + self.alpha * (self.prev_reward + self.gamma * self.Q_get(self.state, action))
+            new_q_val = ((1 - self.alpha) * old_q_val
+                + self.alpha * (self.prev_reward + self.gamma * self.Q_max(self.state)))
             self.Q_set(self.prev_state, self.prev_action, new_q_val)
 
-        self.prev_state = self.state
+            print "Previous State: {}".format(self.state_string(self.prev_state))
+            print "Previous Action: {}".format(self.prev_action)
+            print "Q(s,a):"
+            print self.state_action_matrix_string(self.Q_get)
+            print "N(s,a):"
+            print self.state_action_matrix_string(self.N_get)
+
+        self.prev_state = self.state.copy()
         self.prev_action = action
         self.prev_reward = reward
 
@@ -80,19 +82,22 @@ class LearningAgent(Agent):
 
 
     def update_state(self, inputs):
-        self.state['can_travel_in_direction'] = {
+        legal_moves = {
             'forward': inputs['light'] == 'green',
             'right': inputs['light'] == 'green' or inputs['left'] != 'forward',
             'left': inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
         }
+        self.state['can_travel_in_desired_direction'] = legal_moves[self.next_waypoint]
         self.state['desired_direction'] = self.next_waypoint
 
     # The Q-Learner Policy
     def policy(self, s):
-        actions = [None, 'forward', 'right', 'left']
+        print "------------------------------------"
+        print "policy(s):"
+        print "state_string: {}".format(self.state_string(s))
         a_by_q = {}
         a_by_n = {}
-        for a in actions:
+        for a in self.actions:
             q = self.Q_get(s, a)
             n = self.N_get(s, a)
             if q in a_by_q:
@@ -103,19 +108,26 @@ class LearningAgent(Agent):
                 a_by_n[n].append(a)
             else:
                 a_by_n[n] = [a]
-        if 0 in a_by_n:
-            return random.choice(a_by_n[0])
-        as_max_q = a_by_q[sorted(a_by_q, reverse=True)[0]]
-        if len(as_max_q) == 1:
-            return as_max_q[0]
-        n_by_a_max_q = {n: a for n, a in a_by_n.iteritems() if bool(set(a) & set(as_max_q))}
-        as_min_n = n_by_a_max_q[sorted(n_by_a_max_q)[0]]
-        return random.choice(as_min_n)
+        print "a_by_n: {}".format(a_by_n)
+        print "a_by_q: {}".format(a_by_q)
+        if bool(set(range(0, 10)) & set(a_by_n.keys())):
+            least_used_actions = a_by_n[sorted(a_by_n)[0]]
+            action = random.choice(least_used_actions)
+        else:
+            as_max_q = a_by_q[sorted(a_by_q, reverse=True)[0]]
+            if len(as_max_q) == 1:
+                action = as_max_q[0]
+            else:
+                n_by_a_max_q = {n: a for n, a in a_by_n.iteritems() if bool(set(a) & set(as_max_q))}
+                as_min_n = n_by_a_max_q[sorted(n_by_a_max_q)[0]]
+                action = random.choice(as_min_n)
+        print "Chosen action: {}".format(action)
+        return action
 
     def Q_get(self, s, a):
         state_string = self.state_string(s)
         if state_string in self.q_states and a in self.q_states[state_string]:
-                return self.q_states[state_string][a]
+            return self.q_states[state_string][a]
         return 0
 
     def Q_set(self, s, a, v):
@@ -124,6 +136,16 @@ class LearningAgent(Agent):
             self.q_states[state_string][a] = v
         else:
             self.q_states[state_string] = {a: v}
+
+    def Q_max(self, s):
+        a_by_q = {}
+        for a in self.actions:
+            q = self.Q_get(s, a)
+            if q in a_by_q:
+                a_by_q[q].append(a)
+            else:
+                a_by_q[q] = [a]
+        return sorted(a_by_q, reverse=True)[0]
 
     def N_get(self, s, a):
         state_string = self.state_string(s)
@@ -136,19 +158,45 @@ class LearningAgent(Agent):
         if state_string in self.n_states:
             if a in self.n_states[state_string]:
                 self.n_states[state_string][a] += 1
-                return self.n_states[state_string][a]
             else:
                 self.n_states[state_string][a] = 1
         else:
             self.n_states[state_string] = {a: 1}
-        return 1
+        return self.n_states[state_string][a]
 
     def state_string(self, s):
-        f = s['can_travel_in_direction']['forward']
-        r = s['can_travel_in_direction']['right']
-        l = s['can_travel_in_direction']['left']
+        ct = s['can_travel_in_desired_direction']
         dd = s['desired_direction']
-        return "f:{},r:{},l:{},dd:{}".format(f, r, l, dd)
+        return "ct:{},dd:{}".format(ct, dd)
+
+    def state_action_matrix_string(self, getter):
+        output = "State               | forward  | right    | left     | None     |\n"
+        for s in self.state_permutations():
+            state_string = self.state_string(s)
+            if len(state_string) < 19:
+                state_string = state_string + (' ' * (19 - len(state_string)))
+            output += state_string + " |"
+            for a in self.actions:
+                value = str(getter(s, a))
+                if len(value) < 8:
+                    value = value + (' ' * (8 - len(value)))
+                elif len(value) > 8:
+                    value = value[:8]
+                output += " {} |".format(value)
+            output += "\n"
+        return output
+
+    def state_permutations(self):
+        can_travel_options = [True, False]
+        desired_directions = ['forward', 'right', 'left']
+        states = []
+        for ct in can_travel_options:
+            for dd in desired_directions:
+                states.append({
+                        'can_travel_in_desired_direction': ct,
+                        'desired_direction': dd
+                    })
+        return states
 
 def run():
     """Run the agent for a finite number of trials."""
