@@ -12,3 +12,31 @@ sample of rewards: [22.0, 24.0, 20.0, 24.0, 18.0, 34.0, 20.0, 20.0, 26.0, 26.0, 
 Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
 14.0    20.0    22.0    22.7    26.0    36.0
 Not normally distributed. Skewed to the left with 'long' tail to the right.
+
+
+Q Learning (alpha: 0.5, gamma: 0.5, epsilon: 0.5) (small state space):
+sample of rewards: [-10.0, -11.0, 3.0, 1.0, 1.5, 22.5, 16.0, 28.5, 24.0, 46.5, 22.5, 16.0, 20.5, 15.0, 8.5, 26.0, 29.0, 10.0, 33.0, 26.5, 21.5, 21.0, 30.5, 28.5, 27.0, 29.0, 56.5, 18.0, 8.0, 24.0, 29.0, 24.0, 18.0, 18.0, 27.0, 29.5, 18.0, 11.5, 29.0, 15.5, 22.5, 22.0, 23.5, 28.5, 24.5, 20.0, 23.0, 18.0, 33.5, 22.0, 29.0, 12.5, 18.0, 26.0, 38.0, 17.5, 22.0, 18.0, 24.0, 31.5, 24.0, 18.0, 14.5, 25.5, 20.0, 20.0, 15.0, 28.0, 20.0, 17.5, 20.0, 24.0, 22.0, 23.5, 26.5, 20.0, 23.5, 24.0, 22.5, 30.0, 20.0, 23.5, 23.5, 17.5, 22.0, 27.5, 20.0, 22.5, 28.5, 23.5, 22.0, 22.0, 27.5, 22.0, 36.5, 29.5, 15.5, 22.0, 18.0]
+Min.   1st Qu.  Median    Mean 3rd Qu.    Max.
+-11.00   18.00   22.50   21.90   26.75   56.50
+Roughly normally distributed around the mean with quite a narrow peak and long tails.
+
+ct = "Can travel in desired direction"
+dd = "Desired direction"
+Q(s,a):
+State               | forward  | right    | left     | None     |
+ct:True,dd:forward  | 3.312174 | 1.028847 | 0.985489 | 1.596006 |
+ct:True,dd:right    | 1.204520 | 2.863060 | 0.455513 | 1.667009 |
+ct:True,dd:left     | 0.709327 | 1.237827 | 3.511663 | 0.732327 |
+ct:False,dd:forward | -0.56438 | 0.329422 | 0.449289 | 0.404766 |
+ct:False,dd:right   | 0        | 0        | 0        | 0.879345 |
+ct:False,dd:left    | -0.47166 | 1.131669 | -0.22213 | 0.540565 |
+
+N(s,a):
+State               | forward  | right    | left     | None     |
+ct:True,dd:forward  | 341      | 19       | 12       | 30       |
+ct:True,dd:right    | 20       | 248      | 30       | 21       |
+ct:True,dd:left     | 19       | 16       | 51       | 20       |
+ct:False,dd:forward | 13       | 35       | 23       | 458      |
+ct:False,dd:right   | 0        | 0        | 0        | 1        |
+ct:False,dd:left    | 19       | 58       | 18       | 36       |
+
