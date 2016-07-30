@@ -1,4 +1,5 @@
 import random
+import operator
 from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
@@ -49,7 +50,7 @@ class LearningAgent(Agent):
         self.update_state(inputs)
 
         # TODO: Select action according to your policy
-        action = self.policy(self.state)
+        action = self.policy(self.state, self.exploration_probability(deadline))
 
         # Execute action and get reward
         reward = self.env.act(self, action)
@@ -90,37 +91,28 @@ class LearningAgent(Agent):
         self.state['can_travel_in_desired_direction'] = legal_moves[self.next_waypoint]
         self.state['desired_direction'] = self.next_waypoint
 
+    def exploration_probability(self, deadline):
+        n_max = max(1, self.N_max(self.state))
+        eagerness_to_explore = self.epsilon * deadline / n_max
+        return min(1, eagerness_to_explore)
+
     # The Q-Learner Policy
-    def policy(self, s):
+    def policy(self, s, exploration_probability):
         print "------------------------------------"
         print "policy(s):"
-        print "state_string: {}".format(self.state_string(s))
-        a_by_q = {}
-        a_by_n = {}
-        for a in self.actions:
-            q = self.Q_get(s, a)
-            n = self.N_get(s, a)
-            if q in a_by_q:
-                a_by_q[q].append(a)
-            else:
-                a_by_q[q] = [a]
-            if n in a_by_n:
-                a_by_n[n].append(a)
-            else:
-                a_by_n[n] = [a]
-        print "a_by_n: {}".format(a_by_n)
-        print "a_by_q: {}".format(a_by_q)
-        if bool(set(range(0, 10)) & set(a_by_n.keys())):
-            least_used_actions = a_by_n[sorted(a_by_n)[0]]
-            action = random.choice(least_used_actions)
+        print "Exploration Probability: {}".format(exploration_probability)
+
+        if random.uniform(0, 1) < exploration_probability:
+            print "Exploring"
+            action = random.choice(self.actions)
         else:
-            as_max_q = a_by_q[sorted(a_by_q, reverse=True)[0]]
-            if len(as_max_q) == 1:
-                action = as_max_q[0]
-            else:
-                n_by_a_max_q = {n: a for n, a in a_by_n.iteritems() if bool(set(a) & set(as_max_q))}
-                as_min_n = n_by_a_max_q[sorted(n_by_a_max_q)[0]]
-                action = random.choice(as_min_n)
+            state_string = self.state_string(s)
+            q_values = self.q_states[state_string]
+            print "state_string: {}".format(state_string)
+            print "Q Values for state: {}".format(q_values)
+            sorted_q_value_tuples = sorted(q_values.items(), key=operator.itemgetter(1), reverse=True)
+            q_max_tuple = sorted_q_value_tuples[0]
+            action = q_max_tuple[0]
         print "Chosen action: {}".format(action)
         return action
 
@@ -138,14 +130,7 @@ class LearningAgent(Agent):
             self.q_states[state_string] = {a: v}
 
     def Q_max(self, s):
-        a_by_q = {}
-        for a in self.actions:
-            q = self.Q_get(s, a)
-            if q in a_by_q:
-                a_by_q[q].append(a)
-            else:
-                a_by_q[q] = [a]
-        return sorted(a_by_q, reverse=True)[0]
+        return sorted([self.Q_get(s, a) for a in self.actions], reverse=True)[0]
 
     def N_get(self, s, a):
         state_string = self.state_string(s)
@@ -163,6 +148,9 @@ class LearningAgent(Agent):
         else:
             self.n_states[state_string] = {a: 1}
         return self.n_states[state_string][a]
+
+    def N_max(self, s):
+        return sorted([self.N_get(s, a) for a in self.actions], reverse=True)[0]
 
     def state_string(self, s):
         ct = s['can_travel_in_desired_direction']
