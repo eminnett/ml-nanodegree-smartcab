@@ -58,17 +58,7 @@ class LearningAgent(Agent):
         self.trial_length += 1
         self.reached_destination = reward > 2
 
-        if self.reached_destination or deadline == 0:
-            trial_data = [self.total_reward, self.negative_reward, self.trial_length, self.reached_destination]
-            trial_df = pd.DataFrame([trial_data], columns=self.trial_stats_columns)
-            if self.trial_stats.empty:
-                self.trial_stats = trial_df
-            else:
-                self.trial_stats = self.trial_stats.append(trial_df, ignore_index=True)
-            print self.trial_stats.shape
-            if self.trial_stats.shape[0] == 100:
-                print "*****\nReporting Data\n*****"
-                self.report_data()
+        if self.reached_destination or deadline == 0: self.save_trial_stats()
 
         # TODO: Learn policy based on state, action, reward
         if self.prev_state != None:
@@ -221,6 +211,14 @@ class LearningAgent(Agent):
     def verbose_output(self, string):
         if self.verbose_debugging:
             print string
+
+    def save_trial_stats(self):
+        trial_data = [self.total_reward, self.negative_reward, self.trial_length, self.reached_destination]
+        trial_df = pd.DataFrame([trial_data], columns=self.trial_stats_columns)
+        .trial_stats = self.trial_stats.append(trial_df, ignore_index=True)
+        if self.trial_stats.shape[0] == 100:
+            print "*****\nReporting Data\n*****"
+            self.report_data()
 
     def report_data(self):
         self.trial_stats.to_csv(self.file_name('trial_stats', 'csv'))
