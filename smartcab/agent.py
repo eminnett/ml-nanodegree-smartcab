@@ -25,6 +25,7 @@ class LearningAgent(Agent):
         self.cumulative_reward = 0
         self.actions = ['forward', 'right', 'left', None]
         self.possible_states = self.state_permutations()
+        self.verbose_debugging = False
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -60,8 +61,7 @@ class LearningAgent(Agent):
 
         # TODO: Learn policy based on state, action, reward
         if self.prev_state != None:
-            print "\n"
-            print "Update Q and N:"
+            self.verbose_output("\n\nUpdate Q and N:")
 
             n_val = self.N_increment(self.prev_state, self.prev_action)
             old_q_val = self.Q_get(self.prev_state, self.prev_action)
@@ -69,12 +69,12 @@ class LearningAgent(Agent):
                 + self.alpha * (self.prev_reward + self.gamma * self.Q_max(self.state)))
             self.Q_set(self.prev_state, self.prev_action, new_q_val)
 
-            print "Previous State: {}".format(self.state_string(self.prev_state))
-            print "Previous Action: {}".format(self.prev_action)
-            print "Q(s,a):"
-            print self.state_action_matrix_string(self.Q_get)
-            print "N(s,a):"
-            print self.state_action_matrix_string(self.N_get)
+            self.verbose_output("Previous State: {}".format(self.state_string(self.prev_state)))
+            self.verbose_output("Previous Action: {}".format(self.prev_action))
+            self.verbose_output("Q(s,a):")
+            self.verbose_output(self.state_action_matrix_string(self.Q_get))
+            self.verbose_output("N(s,a):")
+            self.verbose_output(self.state_action_matrix_string(self.N_get))
 
         self.prev_state = self.state.copy()
         self.prev_action = action
@@ -84,11 +84,7 @@ class LearningAgent(Agent):
 
 
     def update_state(self, inputs):
-        self.state['can_travel_in_direction'] = {
-            'forward': inputs['light'] == 'green',
-            'right': inputs['light'] == 'green' or inputs['left'] != 'forward',
-            'left': inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
-        }
+        self.state['env'] = inputs
         self.state['desired_direction'] = self.next_waypoint
 
     def exploration_probability(self, deadline):
@@ -153,11 +149,12 @@ class LearningAgent(Agent):
         return sorted([self.N_get(s, a) for a in self.actions], reverse=True)[0]
 
     def state_string(self, s):
-        f = s['can_travel_in_direction']['forward']
-        r = s['can_travel_in_direction']['right']
-        l = s['can_travel_in_direction']['left']
+        tl = s['env']['light']
+        o = s['env']['oncoming']
+        r = s['env']['right']
+        l = s['env']['left']
         dd = s['desired_direction']
-        return "f:{},r:{},l:{},dd:{}".format(f, r, l, dd)
+        return "tl:{},o:{},r:{},l:{},dd:{}".format(tl, o, r, l, dd)
 
     def state_action_matrix_string(self, getter):
         """
@@ -169,37 +166,49 @@ class LearningAgent(Agent):
         ct:False,dd:right   | 0        | 0        | 0        | 0        |
         ct:False,dd:left    | 9        | 14       | 8        | 4        |
         """
-        output = "State                              | forward  | right    | left     | None     |\n"
+        longest_state_string = 49
+        value_length = 8
+        output = "{} |".format(self.fixed_length_string("State", longest_state_string))
+        for a in self.actions:
+            output += " {} |".format(self.fixed_length_string(str(a), value_length))
+        output += "\n"
         for s in self.possible_states:
-            state_string = self.state_string(s)
-            if len(state_string) < 34:
-                state_string = state_string + (' ' * (34 - len(state_string)))
-            output += state_string + " |"
+            s_string = self.fixed_length_string(self.state_string(s), longest_state_string)
+            output += "{} |".format(s_string)
             for a in self.actions:
-                value = str(getter(s, a))
-                if len(value) < 8:
-                    value = value + (' ' * (8 - len(value)))
-                elif len(value) > 8:
-                    value = value[:8]
-                output += " {} |".format(value)
+                a_string = self.fixed_length_string(str(getter(s, a)), value_length)
+                output += " {} |".format(a_string)
             output += "\n"
         return output
 
+    def fixed_length_string(self, string, length):
+        if len(string) < length:
+            return string + (' ' * (length - len(string)))
+        elif len(string) > length:
+            return string[:length]
+        return string
+
     def state_permutations(self):
-        can_travel_forward = [True, False]
-        can_travel_right = [True, False]
-        can_travel_left = [True, False]
+        light = ['green', 'red']
+        oncoming = self.actions
+        right = self.actions
+        left = self.actions
         desired_directions = ['forward', 'right', 'left']
         states = []
-        for f in can_travel_forward:
-            for r in can_travel_right:
-                for l in can_travel_left:
-                    for dd in desired_directions:
-                        states.append({
-                                'can_travel_in_direction': {'forward': f,'right': r,'left': l},
-                                'desired_direction': dd
-                            })
+        for tl in light:
+            for o in oncoming:
+                for r in right:
+                    for l in left:
+                        for dd in desired_directions:
+                            states.append({
+                                    'env': {'light': tl, 'oncoming': o,'right': r,'left': l},
+                                    'desired_direction': dd
+                                })
         return states
+
+    def verbose_output(self, string):
+        if self.verbose_debugging:
+            print string
 
 def run():
     """Run the agent for a finite number of trials."""
