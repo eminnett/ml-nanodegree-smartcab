@@ -81,7 +81,9 @@ class LearningAgent(Agent):
         self.prev_action = action
         self.prev_reward = reward
 
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
+        trial_status = "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(
+            deadline, inputs, action, reward)
+        self.verbose_output(trial_status)
 
 
     def update_state(self, inputs):
@@ -103,9 +105,8 @@ class LearningAgent(Agent):
             self.verbose_output("Exploring")
             action = random.choice(self.actions)
         else:
-            state_string = self.state_string(s)
-            q_values = self.q_states[state_string]
-            self.verbose_output("state_string: {}".format(state_string))
+            q_values = self.Q_values(s)
+            self.verbose_output("state_string: {}".format(self.state_string(s)))
             self.verbose_output("Q Values for state: {}".format(q_values))
             sorted_q_value_tuples = sorted(q_values.items(), key=operator.itemgetter(1), reverse=True)
             q_max_tuple = sorted_q_value_tuples[0]
@@ -125,6 +126,9 @@ class LearningAgent(Agent):
             self.q_states[state_string][a] = v
         else:
             self.q_states[state_string] = {a: v}
+
+    def Q_values(self, s):
+        return {a: self.Q_get(s, a) for a in self.actions}
 
     def Q_max(self, s):
         return sorted([self.Q_get(s, a) for a in self.actions], reverse=True)[0]
@@ -240,17 +244,23 @@ class LearningAgent(Agent):
                 base, st, state_size, self.alpha, self.gamma, self.epsilon, file_type
             )
 
-def run():
+def run(alpha=0.5, gamma=0.5, epsilon=0.5):
     """Run the agent for a finite number of trials."""
 
     # Set up environment and agent
     e = Environment()  # create environment (also adds some dummy traffic)
     a = e.create_agent(LearningAgent)  # create agent
+
+    # Set agent parameters
+    a.alpha = alpha
+    a.gamma = gamma
+    a.epsilon = epsilon
+
     e.set_primary_agent(a, enforce_deadline=True)  # specify agent to track
     # NOTE: You can set enforce_deadline=False while debugging to allow longer trials
 
     # Now simulate it
-    sim = Simulator(e, update_delay=0.1, display=False)  # create simulator (uses pygame when display=True, if available)
+    sim = Simulator(e, update_delay=0, display=False)  # create simulator (uses pygame when display=True, if available)
     # NOTE: To speed up simulation, reduce update_delay and/or set display=False
 
     sim.run(n_trials=100)  # run for a specified number of trials
