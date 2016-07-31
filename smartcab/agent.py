@@ -233,7 +233,7 @@ class LearningAgent(Agent):
     def file_name(self, base, file_type):
         ts = time.time()
         st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
-        return "./data/{}_{}_a:{}_g:{}_e:{}.{}".format(base, st, self.alpha, self.gamma, self.epsilon, file_type)
+        return "./data/{}_{}_q_agent_a:{}_g:{}_e:{}.{}".format(base, st, self.alpha, self.gamma, self.epsilon, file_type)
 
 def run():
     """Run the agent for a finite number of trials."""
