@@ -95,7 +95,18 @@ class LearningAgent(Agent):
 
     # The Q-Learner Policy
     def policy(self, s, exploration_probability):
-        return self.next_waypoint
+        if self.action_is_legal(self.next_waypoint, self.state['env']): 
+            return self.next_waypoint
+        else:
+            return None
+
+    def action_is_legal(self, action, inputs):
+        if action == 'forward':
+            return inputs['light'] == 'green'
+        elif action =='right':
+            return inputs['light'] == 'green' or inputs['left'] != 'forward'
+        elif action =='left':
+            return inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
         # self.verbose_output(("------------------------------------\n"
         #     + "policy(s):\n"
         #     + "Exploration Probability: {}").format(exploration_probability))
