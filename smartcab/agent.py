@@ -1,5 +1,8 @@
 import random
 import operator
+import pandas as pd
+import time
+import datetime
 from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
@@ -12,17 +15,13 @@ class LearningAgent(Agent):
         self.color = 'red'  # override color
         self.planner = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         # TODO: Initialize any additional variables here
-        self.state = {}
-        self.prev_state = None
-        self.prev_action = None
-        self.prev_reward = None
         self.q_states = {}
         self.n_states = {}
         self.alpha = 0.5
         self.gamma = 0.5
         self.epsilon = 0.5
-        self.all_rewards = []
-        self.cumulative_reward = 0
+        self.trial_stats_columns = ['total_reward', 'negative_reward', 'trial_length', 'reached_destination']
+        self.trial_stats = pd.DataFrame(columns=self.trial_stats_columns)
         self.actions = ['forward', 'right', 'left', None]
         self.possible_states = self.state_permutations()
         self.verbose_debugging = False
@@ -34,13 +33,10 @@ class LearningAgent(Agent):
         self.prev_state = None
         self.prev_action = None
         self.prev_reward = None
-
-        print "Accumulated reward: {}".format(self.cumulative_reward)
-        if (len(self.all_rewards) > 0 and len(self.all_rewards) < 100) or self.cumulative_reward != 0:
-            self.all_rewards.append(self.cumulative_reward)
-        print "Number of iterations: {}".format(len(self.all_rewards))
-        print "All Rewards; {}".format(self.all_rewards)
-        self.cumulative_reward = 0
+        self.total_reward = 0
+        self.negative_reward = 0
+        self.trial_length = 0
+        self.reached_destination = False
 
     def update(self, t):
         # Gather inputs
@@ -57,7 +53,22 @@ class LearningAgent(Agent):
         # Execute action and get reward
         reward = self.env.act(self, action)
 
-        self.cumulative_reward += reward
+        self.total_reward += reward
+        if reward < 0: self.negative_reward += reward
+        self.trial_length += 1
+        self.reached_destination = reward > 2
+
+        if self.reached_destination or deadline == 0:
+            trial_data = [self.total_reward, self.negative_reward, self.trial_length, self.reached_destination]
+            trial_df = pd.DataFrame([trial_data], columns=self.trial_stats_columns)
+            if self.trial_stats.empty:
+                self.trial_stats = trial_df
+            else:
+                self.trial_stats = self.trial_stats.append(trial_df, ignore_index=True)
+            print self.trial_stats.shape
+            if self.trial_stats.shape[0] == 100:
+                print "*****\nReporting Data\n*****"
+                self.report_data()
 
         # TODO: Learn policy based on state, action, reward
         if self.prev_state != None:
@@ -209,6 +220,21 @@ class LearningAgent(Agent):
     def verbose_output(self, string):
         if self.verbose_debugging:
             print string
+
+    def report_data(self):
+        self.trial_stats.to_csv(self.file_name('trial_stats', 'csv'))
+        matrices_text_file = open(self.file_name('Q_and_N', 'txt'), "w")
+        matrices_text_file.write("Q(s,a):\n")
+        matrices_text_file.write(self.state_action_matrix_string(self.Q_get))
+        matrices_text_file.write("\n")
+        matrices_text_file.write("N(s,a):\n")
+        matrices_text_file.write(self.state_action_matrix_string(self.N_get))
+        matrices_text_file.close()
+
+    def file_name(self, base, file_type):
+        ts = time.time()
+        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
+        return "./data/{}_{}_a:{}_g:{}_e:{}.{}".format(base, st, self.alpha, self.gamma, self.epsilon, file_type)
 
 def run():
     """Run the agent for a finite number of trials."""
