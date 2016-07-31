@@ -226,7 +226,10 @@ class LearningAgent(Agent):
     def save_trial_stats(self):
         trial_data = [self.total_reward, self.negative_reward, self.trial_length, self.reached_destination]
         trial_df = pd.DataFrame([trial_data], columns=self.trial_stats_columns)
-        .trial_stats = self.trial_stats.append(trial_df, ignore_index=True)
+        if self.trial_stats.empty:
+            self.trial_stats = trial_df
+        else:
+            self.trial_stats = self.trial_stats.append(trial_df, ignore_index=True)
         if self.trial_stats.shape[0] == 100:
             print "*****\nReporting Data\n*****"
             self.report_data()
