@@ -85,11 +85,7 @@ class LearningAgent(Agent):
 
 
     def update_state(self, inputs):
-        self.state['can_travel_in_direction'] = {
-            'forward': inputs['light'] == 'green',
-            'right': inputs['light'] == 'green' or inputs['left'] != 'forward',
-            'left': inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
-        }
+        self.state['env'] = inputs
         self.state['desired_direction'] = self.next_waypoint
 
     def exploration_probability(self, deadline):
@@ -154,11 +150,12 @@ class LearningAgent(Agent):
         return sorted([self.N_get(s, a) for a in self.actions], reverse=True)[0]
 
     def state_string(self, s):
-        f = s['can_travel_in_direction']['forward']
-        r = s['can_travel_in_direction']['right']
-        l = s['can_travel_in_direction']['left']
+        tl = s['env']['light']
+        o = s['env']['oncoming']
+        r = s['env']['right']
+        l = s['env']['left']
         dd = s['desired_direction']
-        return "f:{},r:{},l:{},dd:{}".format(f, r, l, dd)
+        return "tl:{},o:{},r:{},l:{},dd:{}".format(tl, o, r, l, dd)
 
     def state_action_matrix_string(self, getter):
         """
@@ -170,7 +167,7 @@ class LearningAgent(Agent):
         ct:False,dd:right   | 0        | 0        | 0        | 0        |
         ct:False,dd:left    | 9        | 14       | 8        | 4        |
         """
-        longest_state_string = 34
+        longest_state_string = 49
         value_length = 8
         output = "{} |".format(self.fixed_length_string("State", longest_state_string))
         for a in self.actions:
@@ -193,19 +190,21 @@ class LearningAgent(Agent):
         return string
 
     def state_permutations(self):
-        can_travel_forward = [True, False]
-        can_travel_right = [True, False]
-        can_travel_left = [True, False]
+        light = ['green', 'red']
+        oncoming = self.actions
+        right = self.actions
+        left = self.actions
         desired_directions = ['forward', 'right', 'left']
         states = []
-        for f in can_travel_forward:
-            for r in can_travel_right:
-                for l in can_travel_left:
-                    for dd in desired_directions:
-                        states.append({
-                                'can_travel_in_direction': {'forward': f,'right': r,'left': l},
-                                'desired_direction': dd
-                            })
+        for tl in light:
+            for o in oncoming:
+                for r in right:
+                    for l in left:
+                        for dd in desired_directions:
+                            states.append({
+                                    'env': {'light': tl, 'oncoming': o,'right': r,'left': l},
+                                    'desired_direction': dd
+                                })
         return states
 
     def verbose_output(self, string):
