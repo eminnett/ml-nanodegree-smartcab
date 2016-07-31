@@ -105,7 +105,7 @@ class LearningAgent(Agent):
 
     # The Q-Learner Policy
     def policy(self, s, exploration_probability):
-        return random.choice([None, 'forward', 'left', 'right'])
+        return self.next_waypoint
         # self.verbose_output(("------------------------------------\n"
         #     + "policy(s):\n"
         #     + "Exploration Probability: {}").format(exploration_probability))
