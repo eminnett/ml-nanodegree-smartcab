@@ -105,23 +105,24 @@ class LearningAgent(Agent):
 
     # The Q-Learner Policy
     def policy(self, s, exploration_probability):
-        print "------------------------------------"
-        print "policy(s):"
-        print "Exploration Probability: {}".format(exploration_probability)
-
-        if random.uniform(0, 1) < exploration_probability:
-            print "Exploring"
-            action = random.choice(self.actions)
-        else:
-            state_string = self.state_string(s)
-            q_values = self.q_states[state_string]
-            print "state_string: {}".format(state_string)
-            print "Q Values for state: {}".format(q_values)
-            sorted_q_value_tuples = sorted(q_values.items(), key=operator.itemgetter(1), reverse=True)
-            q_max_tuple = sorted_q_value_tuples[0]
-            action = q_max_tuple[0]
-        print "Chosen action: {}".format(action)
-        return action
+        return random.choice([None, 'forward', 'left', 'right'])
+        # self.verbose_output(("------------------------------------\n"
+        #     + "policy(s):\n"
+        #     + "Exploration Probability: {}").format(exploration_probability))
+        #
+        # if random.uniform(0, 1) < exploration_probability:
+        #     self.verbose_output("Exploring")
+        #     action = random.choice(self.actions)
+        # else:
+        #     state_string = self.state_string(s)
+        #     q_values = self.q_states[state_string]
+        #     self.verbose_output("state_string: {}".format(state_string))
+        #     self.verbose_output("Q Values for state: {}".format(q_values))
+        #     sorted_q_value_tuples = sorted(q_values.items(), key=operator.itemgetter(1), reverse=True)
+        #     q_max_tuple = sorted_q_value_tuples[0]
+        #     action = q_max_tuple[0]
+        # self.verbose_output("Chosen action: {}".format(action))
+        # return action
 
     def Q_get(self, s, a):
         state_string = self.state_string(s)
