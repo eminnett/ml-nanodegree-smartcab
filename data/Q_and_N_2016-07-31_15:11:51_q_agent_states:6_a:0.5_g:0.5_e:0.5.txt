@@ -1,0 +1,17 @@
+Q(s,a):
+State               | forward  | right    | left     | None     |
+ct:True,dd:forward  | 2.992986 | 0.702594 | 0.684012 | 1.602625 |
+ct:True,dd:right    | 0.792360 | 2.859939 | 0.874908 | 1.818160 |
+ct:True,dd:left     | 0.786145 | 1.118765 | 3.673987 | 1.240688 |
+ct:False,dd:forward | -0.53878 | -0.13451 | -0.34586 | 1.182949 |
+ct:False,dd:right   | 0.176480 | 0        | 0        | 0        |
+ct:False,dd:left    | -0.38350 | 0.497486 | -0.41732 | 0.361425 |
+
+N(s,a):
+State               | forward  | right    | left     | None     |
+ct:True,dd:forward  | 319      | 24       | 13       | 19       |
+ct:True,dd:right    | 25       | 356      | 23       | 17       |
+ct:True,dd:left     | 23       | 20       | 50       | 16       |
+ct:False,dd:forward | 21       | 63       | 24       | 432      |
+ct:False,dd:right   | 1        | 0        | 0        | 0        |
+ct:False,dd:left    | 31       | 72       | 21       | 31       |
