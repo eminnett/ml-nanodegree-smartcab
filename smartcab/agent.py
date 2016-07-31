@@ -85,7 +85,12 @@ class LearningAgent(Agent):
 
 
     def update_state(self, inputs):
-        self.state['env'] = inputs
+        legal_moves = {
+            'forward': inputs['light'] == 'green',
+            'right': inputs['light'] == 'green' or inputs['left'] != 'forward',
+            'left': inputs['light'] == 'green' and (inputs['oncoming'] == None or inputs['oncoming'] == 'left')
+        }
+        self.state['can_travel_in_desired_direction'] = legal_moves[self.next_waypoint]
         self.state['desired_direction'] = self.next_waypoint
 
     def exploration_probability(self, deadline):
@@ -150,12 +155,9 @@ class LearningAgent(Agent):
         return sorted([self.N_get(s, a) for a in self.actions], reverse=True)[0]
 
     def state_string(self, s):
-        tl = s['env']['light']
-        o = s['env']['oncoming']
-        r = s['env']['right']
-        l = s['env']['left']
+        ct = s['can_travel_in_desired_direction']
         dd = s['desired_direction']
-        return "tl:{},o:{},r:{},l:{},dd:{}".format(tl, o, r, l, dd)
+        return "ct:{},dd:{}".format(ct, dd)
 
     def state_action_matrix_string(self, getter):
         """
@@ -167,7 +169,7 @@ class LearningAgent(Agent):
         ct:False,dd:right   | 0        | 0        | 0        | 0        |
         ct:False,dd:left    | 9        | 14       | 8        | 4        |
         """
-        longest_state_string = 49
+        longest_state_string = 19
         value_length = 8
         output = "{} |".format(self.fixed_length_string("State", longest_state_string))
         for a in self.actions:
@@ -190,21 +192,15 @@ class LearningAgent(Agent):
         return string
 
     def state_permutations(self):
-        light = ['green', 'red']
-        oncoming = self.actions
-        right = self.actions
-        left = self.actions
+        can_travel_options = [True, False]
         desired_directions = ['forward', 'right', 'left']
         states = []
-        for tl in light:
-            for o in oncoming:
-                for r in right:
-                    for l in left:
-                        for dd in desired_directions:
-                            states.append({
-                                    'env': {'light': tl, 'oncoming': o,'right': r,'left': l},
-                                    'desired_direction': dd
-                                })
+        for ct in can_travel_options:
+            for dd in desired_directions:
+                states.append({
+                        'can_travel_in_desired_direction': ct,
+                        'desired_direction': dd
+                    })
         return states
 
     def verbose_output(self, string):
@@ -235,7 +231,10 @@ class LearningAgent(Agent):
     def file_name(self, base, file_type):
         ts = time.time()
         st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
-        return "./data/{}_{}_q_agent_a:{}_g:{}_e:{}.{}".format(base, st, self.alpha, self.gamma, self.epsilon, file_type)
+        state_size = len(self.possible_states)
+        return "./data/{}_{}_q_agent_states:{}_a:{}_g:{}_e:{}.{}".format(
+                base, st, state_size, self.alpha, self.gamma, self.epsilon, file_type
+            )
 
 def run():
     """Run the agent for a finite number of trials."""
