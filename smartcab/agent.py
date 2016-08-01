@@ -14,7 +14,7 @@ class LearningAgent(Agent):
         super(LearningAgent, self).__init__(env)  # sets self.env = env, state = None, next_waypoint = None, and a default color
         self.color = 'red'  # override color
         self.planner = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
-        # TODO: Initialize any additional variables here
+        # Initialize any additional variables here
         self.q_states = {}
         self.n_states = {}
         self.alpha = 0.5
@@ -28,7 +28,7 @@ class LearningAgent(Agent):
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
-        # TODO: Prepare for a new trip; reset any variables here, if required
+        # Prepare for a new trip; reset any variables here, if required
         self.state = {}
         self.prev_state = None
         self.prev_action = None
@@ -44,23 +44,23 @@ class LearningAgent(Agent):
         inputs = self.env.sense(self)
         deadline = self.env.get_deadline(self)
 
-        # TODO: Update state
+        # Update state
         self.update_state(inputs)
 
-        # TODO: Select action according to your policy
+        # Select action according to your policy
         action = self.policy(self.state, self.exploration_probability(deadline))
 
         # Execute action and get reward
         reward = self.env.act(self, action)
 
+        # Update the trial statistics
         self.total_reward += reward
         if reward < 0: self.negative_reward += reward
         self.trial_length += 1
         self.reached_destination = reward > 2
-
         if self.reached_destination or deadline == 0: self.save_trial_stats()
 
-        # TODO: Learn policy based on state, action, reward
+        # Learn policy based on state, action, reward
         if self.prev_state != None:
             self.verbose_output("\n\nUpdate Q and N:")
 
@@ -91,12 +91,20 @@ class LearningAgent(Agent):
         self.state['desired_direction'] = self.next_waypoint
 
     def exploration_probability(self, deadline):
+        """
+        Given argmax for N(s), the current deadline and epsilon, it returns the
+        probability that agent will explore.
+        """
         n_max = max(1, self.N_max(self.state))
         eagerness_to_explore = self.epsilon * deadline / n_max
         return min(1, eagerness_to_explore)
 
-    # The Q-Learner Policy
     def policy(self, s, exploration_probability):
+        """
+        The Q-Learner Policy: Returns a random action according to the
+        exploartion probability otherwise it returns the action that maximises
+        Q(s,a) for the given state 's'.
+        """
         self.verbose_output(("------------------------------------\n"
             + "policy(s):\n"
             + "Exploration Probability: {}").format(exploration_probability))
@@ -115,12 +123,14 @@ class LearningAgent(Agent):
         return action
 
     def Q_get(self, s, a):
+        """Gets the Q value for the given state-action pair."""
         state_string = self.state_string(s)
         if state_string in self.q_states and a in self.q_states[state_string]:
             return self.q_states[state_string][a]
         return 0
 
     def Q_set(self, s, a, v):
+        """Sets Q for the given state-action pair to the given value."""
         state_string = self.state_string(s)
         if state_string in self.q_states:
             self.q_states[state_string][a] = v
@@ -128,18 +138,22 @@ class LearningAgent(Agent):
             self.q_states[state_string] = {a: v}
 
     def Q_values(self, s):
+        """Gets Q(s,a) for all actions and the given state."""
         return {a: self.Q_get(s, a) for a in self.actions}
 
     def Q_max(self, s):
+        """Gets the maximum Q(s,a) value for the given state."""
         return sorted([self.Q_get(s, a) for a in self.actions], reverse=True)[0]
 
     def N_get(self, s, a):
+        """Gets the N value for the given state-action pair."""
         state_string = self.state_string(s)
         if state_string in self.n_states and a in self.n_states[state_string]:
                 return self.n_states[state_string][a]
         return 0
 
     def N_increment(self, s, a):
+        """Increments the N value for the given state-action pair."""
         state_string = self.state_string(s)
         if state_string in self.n_states:
             if a in self.n_states[state_string]:
@@ -151,9 +165,11 @@ class LearningAgent(Agent):
         return self.n_states[state_string][a]
 
     def N_max(self, s):
+        """Gets the maximum N(s,a) value for the given state."""
         return sorted([self.N_get(s, a) for a in self.actions], reverse=True)[0]
 
     def state_string(self, s):
+        """Encodes the given state into a suitably short string."""
         tl = s['env']['light']
         o = s['env']['oncoming']
         r = s['env']['right']
@@ -163,6 +179,11 @@ class LearningAgent(Agent):
 
     def state_action_matrix_string(self, getter):
         """
+        Constructs a formatted multiline string that describes either the
+        Q(s,a) or N(s,a) matrices. The choice of matrix is determined by the
+        getter parameter method. The following is an example N(s,a) matrix for
+        a small state space:
+
         State               | forward  | right    | left     | None     |
         ct:True,dd:forward  | 53       | 8        | 15       | 19       |
         ct:True,dd:right    | 18       | 70       | 11       | 13       |
@@ -187,6 +208,10 @@ class LearningAgent(Agent):
         return output
 
     def fixed_length_string(self, string, length):
+        """
+        Formats the given string to be exactly the given length either by
+        truncating the string or adding white space to the end.
+        """
         if len(string) < length:
             return string + (' ' * (length - len(string)))
         elif len(string) > length:
@@ -194,6 +219,7 @@ class LearningAgent(Agent):
         return string
 
     def state_permutations(self):
+        """Produces a list of all possible states within the state space."""
         light = ['green', 'red']
         oncoming = self.actions
         right = self.actions
@@ -216,6 +242,10 @@ class LearningAgent(Agent):
             print string
 
     def save_trial_stats(self):
+        """
+        Saves the statistics for the current trial in the trial_stats DataFram
+        and reports the data of the simulation has come to an end.
+        """
         trial_data = [self.total_reward, self.negative_reward, self.trial_length, self.reached_destination]
         trial_df = pd.DataFrame([trial_data], columns=self.trial_stats_columns)
         if self.trial_stats.empty:
@@ -227,6 +257,10 @@ class LearningAgent(Agent):
             self.report_data()
 
     def report_data(self):
+        """
+        Writes the contents of the trial stats DataFrame to a CSV file and the
+        contents pf the Q(s,a) and N(s,a) matrices to a text file.
+        """
         self.trial_stats.to_csv(self.file_name('trial_stats', 'csv'))
         matrices_text_file = open(self.file_name('Q_and_N', 'txt'), "w")
         matrices_text_file.write("Q(s,a):\n")
@@ -236,12 +270,16 @@ class LearningAgent(Agent):
         matrices_text_file.write(self.state_action_matrix_string(self.N_get))
         matrices_text_file.close()
 
-    def file_name(self, base, file_type):
+    def file_name(self, base, file_extension):
+        """
+        Generates an appropriate file name given the base file neame,
+        file extension, state space size and Q-Learning parameters.
+        """
         ts = time.time()
         st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
         state_size = len(self.possible_states)
         return "./data/{}_{}_q_agent_states:{}_a:{}_g:{}_e:{}.{}".format(
-                base, st, state_size, self.alpha, self.gamma, self.epsilon, file_type
+                base, st, state_size, self.alpha, self.gamma, self.epsilon, file_extension
             )
 
 def run(alpha=0.5, gamma=0.5, epsilon=0.5):
