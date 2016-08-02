@@ -36,7 +36,7 @@ def display_trial_stats(df, title_prefix, ylim_bottom, ylim_top):
     ax = sns.rugplot(failures, color='red', height=1, linewidth=10, alpha=0.1)
     sns.plt.legend(labels=['Trial Length', 'Total Reward', 'Negative Reward', 'Reached Destination'], frameon=True)
     ax.set(xlabel='Trial', ylabel='Value')
-    ax.set_title(title_prefix + ': Trial Length, Total Reward. and Negative Reward for each Trial')
+    ax.set_title(title_prefix + ': Trial Length, Total Reward, and Negative Reward for each Trial')
     sns.plt.ylim(ylim_bottom, ylim_top)
     sns.plt.plot([0, 100], [0, 0], linewidth=1, color='.5')
 
@@ -106,21 +106,26 @@ def find_optmal_parameters():
 
     return optimal_df, optimal_parameters
 
-def remove_empty_rows(df):
-    return df[(df[['forward', 'left', 'right', 'None']].T != 0).any()]
+def remove_empty_rows(df, columns):
+    return df[(df[columns].T != 0).any()]
 
 def optimal_q_and_n_less_empty_rows():
     """
     Display the Q(s,a) and N(s,a) matrices built up during the optimal
     Q-Learning simulation.
     """
-    Q_sparse = remove_empty_rows(load_df("./data/Q_optimal_*.csv"))
-    N_sparse = remove_empty_rows(load_df("./data/N_optimal_*.csv"))
+    truncator = lambda x: round(x, 3)
+    numeric_columns = ['forward', 'left', 'right', 'None']
+    Q_sparse = remove_empty_rows(load_df("./data/Q_optimal_*.csv"), numeric_columns)
+    Q_sparse[numeric_columns] = Q_sparse[numeric_columns].applymap(truncator)
+
+    N_sparse = remove_empty_rows(load_df("./data/N_optimal_*.csv"), numeric_columns)
+
     print "State encoding:"
     print "    tl: Traffic light"
-    print "    o: Oncoming traffic"
-    print "    r: Traffic coming from the right"
-    print "    l: Traffic coming from the left"
+    print "    o:  Oncoming traffic"
+    print "    r:  Traffic coming from the right"
+    print "    l:  Traffic coming from the left"
     print "    dd: Desired direction"
     print "NB: Please note that states that were not experienced by the agent are not displayed.\n"
     print "Q(s,a):"
