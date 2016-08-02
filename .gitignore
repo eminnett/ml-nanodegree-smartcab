@@ -1,1 +1,4 @@
 *.pyc
+
+/data/gridsearch/*
+!/data/gridsearch/alpha_0.5/*
