@@ -10,9 +10,11 @@ def load_df(file_name_pattern):
     the DataFrame that represnts that CSV file.
     """
     file_names = glob.glob(file_name_pattern)
-    df = pd.read_csv(file_names[0])
-    df.rename(columns={'Unnamed: 0': 'Trial'}, inplace=True)
-    return df
+    if len(file_names) > 0:
+        df = pd.read_csv(file_names[0])
+        df.rename(columns={'Unnamed: 0': 'Trial'}, inplace=True)
+        return df
+    return pd.DataFrame()
 
 def display_trial_stats(df, title_prefix, ylim_bottom, ylim_top):
     """
@@ -96,13 +98,14 @@ def find_optmal_parameters():
             for e in search_values:
                 file_name_pattern = "./data/gridsearch/alpha_{}/*_g:{}_e:{}.csv".format(a, g, e)
                 df = load_df(file_name_pattern)
-                penalty = penalty_score(df)
-                if penalty < lowest_penalty_score:
-                    lowest_penalty_score = penalty
-                    optimal_df = df
-                    optimal_parameters['alpha'] = a
-                    optimal_parameters['gamma'] = g
-                    optimal_parameters['epsilon'] = e
+                if not df.empty:
+                    penalty = penalty_score(df)
+                    if penalty < lowest_penalty_score:
+                        lowest_penalty_score = penalty
+                        optimal_df = df
+                        optimal_parameters['alpha'] = a
+                        optimal_parameters['gamma'] = g
+                        optimal_parameters['epsilon'] = e
 
     return optimal_df, optimal_parameters
 
