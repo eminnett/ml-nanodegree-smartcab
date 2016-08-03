@@ -2,5 +2,5 @@
 
 /data/gridsearch/*
 !/data/gridsearch/alpha_0.01/*
-!/data/gridsearch/alpha_0.5/*
+!/data/gridsearch/alpha_0.3/*
 !/data/gridsearch/alpha_0.7/*
