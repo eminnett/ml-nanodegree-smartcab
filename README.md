@@ -34,6 +34,6 @@ This will run the `agent.py` file and execute your agent code.
 Run the following in the terminal from the project root:
 
 ```
-$ ipython nbconvert smartcab_analysis.ipynb --to pdf --template report
+$ ipython nbconvert smartcab_analysis.ipynb --to pdf
 $ mv smartcab_analysis.pdf report.pdf
 ```
